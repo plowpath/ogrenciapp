@@ -8,6 +8,7 @@ mod database;
 use rocket::response::content;
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
+use std::fs;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Musteri {
@@ -45,8 +46,7 @@ impl Musteri {
 }
 
 #[get("/")]
-fn index() -> rocket::response::content::Html<std::string::String> /*rocket::response::content::Json<std::string::String>*/
-{
+fn index() -> rocket::response::content::Html<std::string::String> {
     let conn = database::sqlite_connection();
     let a = database::data_hazirlama(&conn);
     let mut lel = String::new();
@@ -221,71 +221,7 @@ fn proper_data_insert(
 
 #[get("/new")]
 fn new() -> rocket::response::content::Html<std::string::String> {
-    content::Html(
-        r#"<!doctype html>
-<html lang="en">
-        
-        <head>
-          <!-- Required meta tags -->
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        
-          <!-- Font Awesome -->
-          <link href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" rel="stylesheet" />
-          <!-- Google Fonts -->
-          <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-          <!-- MDB -->
-          <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.css" rel="stylesheet" />
-        
-          <title>Öğrenci</title>
-        </head>
-        
-        <body>
-          <div class="container">
-            <form action="/gonder" method="get">
-              <label for="isim">isim:</label>
-              <input class="form-control" type="text" id="isim" name="isim" required>
-              <label for="soyisim">soyisim:</label>
-              <input class="form-control" type="text" id="soyisim" name="soyisim" required>
-              <label for="fatura_adres">fatura adres:</label>
-              <input class="form-control" type="text" id="fatura_adres" name="fatura_adres" required>
-              <label for="veli_adres">veli adres:</label>
-              <input class="form-control" type="text" id="veli_adres" name="veli_adres" required>
-              <label for="telefon">telefon:</label>
-              <input class="form-control" type="tel" id="telefon" name="telefon" required>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="yemek" name="yemek" value="true" checked>
-                <label class="form-check-label" for="yemek">yemek</label>
-              </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="servis" name="servis" value="true" checked>
-                <label class="form-check-label" for="servis">servis</label>
-              </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="turkce" name="turkce" value="true" checked>
-                <label class="form-check-label" for="turkce">türkçe</label>
-              </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="matematik" name="matematik" value="true" checked>
-                <label class="form-check-label" for="matematik">matematik</label>
-              </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="fen" name="fen" value="true" checked>
-                <label class="form-check-label" for="fen">fen</label>
-              </div>
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="sosyal" name="sosyal" value="true" checked>
-                <label class="form-check-label" for="sosyal">sosyal</label>
-              </div>
-        
-              <button type="submit" class="btn btn-primary">Gönder</button>
-              <a class="btn btn-danger" href="/nuke" role="button">NUKE</a>
-            </form>
-        </div>
-    </body>
-</html>"#
-        .to_string(),
-    )
+    content::Html(fs::read_to_string("ui/new.html").expect("dosya yok"))
 }
 fn main() {
     rocket::ignite()
