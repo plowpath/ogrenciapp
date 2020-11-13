@@ -134,8 +134,24 @@ fn table() -> rocket::response::content::Html<std::string::String> {
     content::Html(fs::read_to_string("ui/table.html").expect("tablo sayfası yok"))
 }
 
+//very dummy
+#[get("/update/<kolum>/<yenim>/<tel>")]
+fn update(kolum: String, yenim: String, tel: i64) -> String {
+    let conn = database::sqlite_connection();
+    let hereismysql = "UPDATE Musteri SET ".to_string()
+        + kolum.as_str()
+        + "='"
+        + yenim.as_str()
+        + "' WHERE telefon="
+        + tel.to_string().as_str();
+    conn.execute(hereismysql.as_str(), params![]).unwrap();
+    "done?".to_string()
+}
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, proper_data_insert, nuke, new, table])
+        .mount(
+            "/",
+            routes![index, proper_data_insert, nuke, new, table, update],
+        )
         .launch();
 }
