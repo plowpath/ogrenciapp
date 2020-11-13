@@ -6,9 +6,9 @@ use std::path::Path;
 pub fn sqlite_connection() -> Connection {
     let conn;
     if Path::new("deneme.db").exists() {
-        conn = Connection::open("deneme.db").unwrap();
+        conn = Connection::open("deneme.db").expect("olması gereken database yok");
     } else {
-        conn = Connection::open("deneme.db").unwrap();
+        conn = Connection::open("deneme.db").expect("olmaması gereken database oluşturulamıyor");
         conn.execute(
             "CREATE TABLE Musteri (
                           id              INTEGER PRIMARY KEY,
@@ -27,34 +27,36 @@ pub fn sqlite_connection() -> Connection {
                           )",
             params![],
         )
-        .unwrap();
+        .expect("yeni database oluştururken data girişini yapamadık");
     }
     conn
 }
 
 pub fn data_hazirlama(conn: &Connection) -> Vec<serde_json::Value> {
-    let mut stmt = conn.prepare("SELECT * FROM Musteri").unwrap();
+    let mut stmt = conn
+        .prepare("SELECT * FROM Musteri")
+        .expect("tüm listeye select atamadık");
     let person_iter = stmt
         .query_map(params![], |row| {
             Ok(Musteri {
-                id: row.get(0).unwrap(),
-                isim: row.get(1).unwrap(),
-                soyisim: row.get(2).unwrap(),
-                fatura_adres: row.get(3).unwrap(),
-                veli_adres: row.get(4).unwrap(),
-                telefon: row.get(5).unwrap(),
-                yemek: row.get(6).unwrap(),
-                servis: row.get(7).unwrap(),
-                turkce: row.get(8).unwrap(),
-                matematik: row.get(9).unwrap(),
-                fen: row.get(10).unwrap(),
-                sosyal: row.get(11).unwrap(),
+                id: row.get(0).expect("id sütunu"),
+                isim: row.get(1).expect("isim sütunu"),
+                soyisim: row.get(2).expect("soyisim sütunu"),
+                fatura_adres: row.get(3).expect("fatura_adres sütunu"),
+                veli_adres: row.get(4).expect("veli_adres sütunu"),
+                telefon: row.get(5).expect("telefon sütunu"),
+                yemek: row.get(6).expect("yemek sütunu"),
+                servis: row.get(7).expect("servis sütunu"),
+                turkce: row.get(8).expect("turkce sütunu"),
+                matematik: row.get(9).expect("matematik sütunu"),
+                fen: row.get(10).expect("fen sütunu"),
+                sosyal: row.get(11).expect("sosyal sütunu"),
             })
         })
-        .unwrap();
+        .expect("rusqlite tamamını iter ederken sıkıntı");
     let mut bar = Vec::new();
     for person in person_iter {
-        let footar = json!(person.unwrap());
+        let footar = json!(person.expect("json serializasyonu"));
         bar.push(footar);
     }
     bar
