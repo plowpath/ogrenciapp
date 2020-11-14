@@ -134,18 +134,46 @@ fn table() -> rocket::response::content::Html<std::string::String> {
     content::Html(fs::read_to_string("ui/table.html").expect("tablo sayfası yok"))
 }
 
-//very dummy
-#[get("/update/<kolum>/<yenim>/<tel>")]
-fn update(kolum: String, yenim: String, tel: i64) -> String {
+#[get("/update?<tel>&<kolum>&<yenim>")]
+fn update(tel: i64, kolum: String, yenim: String) -> String {
     let conn = database::sqlite_connection();
-    let hereismysql = "UPDATE Musteri SET ".to_string()
-        + kolum.as_str()
-        + "='"
-        + yenim.as_str()
-        + "' WHERE telefon="
-        + tel.to_string().as_str();
-    conn.execute(hereismysql.as_str(), params![]).unwrap();
-    "done?".to_string()
+    if kolum == "isim" || kolum == "soyisim" || kolum == "fatura_adres" || kolum == "veli_adres" {
+        let hereismysql = "UPDATE Musteri SET ".to_string()
+            + kolum.as_str()
+            + "='"
+            + yenim.as_str()
+            + "' WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(hereismysql.as_str(), params![]).unwrap();
+        "done".to_string()
+    } else if kolum == "telefon" && yenim.parse::<i64>().is_ok() {
+        let hereismysql = "UPDATE Musteri SET ".to_string()
+            + kolum.as_str()
+            + "="
+            + yenim.as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(hereismysql.as_str(), params![]).unwrap();
+        "done".to_string()
+    } else if (kolum == "yemek"
+        || kolum == "servis"
+        || kolum == "turkce"
+        || kolum == "matematik"
+        || kolum == "fen"
+        || kolum == "sosyal")
+        && (yenim == "0" || yenim == "1")
+    {
+        let hereismysql = "UPDATE Musteri SET ".to_string()
+            + kolum.as_str()
+            + "="
+            + yenim.as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(hereismysql.as_str(), params![]).unwrap();
+        "done ".to_string()
+    } else {
+        "böyle bir alan yok".to_string()
+    }
 }
 fn main() {
     rocket::ignite()
