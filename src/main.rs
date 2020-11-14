@@ -175,11 +175,24 @@ fn update(tel: i64, kolum: String, yenim: String) -> String {
         "böyle bir alan yok".to_string()
     }
 }
+
+#[get("/guncelle")]
+fn guncelle() -> rocket::response::content::Html<std::string::String> {
+    content::Html(fs::read_to_string("ui/update.html").expect("güncelleme sayfası yok"))
+}
 fn main() {
     rocket::ignite()
         .mount(
             "/",
-            routes![index, proper_data_insert, nuke, new, table, update],
+            routes![
+                index,
+                proper_data_insert,
+                nuke,
+                new,
+                table,
+                update,
+                guncelle
+            ],
         )
         .launch();
 }
