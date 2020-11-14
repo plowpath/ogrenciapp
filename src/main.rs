@@ -5,13 +5,13 @@ extern crate rocket;
 
 mod database;
 
-use rocket::response::content;
-use rusqlite::{params, Connection};
+use rocket::response::{content, Redirect};
+use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Musteri {
+pub struct Musteri {
     id: i32,
     isim: String,
     soyisim: String,
@@ -45,8 +45,8 @@ impl Musteri {
     }
 }
 
-#[get("/")]
-fn index() -> rocket::response::content::Json<std::string::String> {
+#[get("/api")]
+fn api() -> rocket::response::content::Json<std::string::String> {
     let conn = database::sqlite_connection();
     let a = database::data_hazirlama(&conn);
     let mut lel = String::new();
@@ -63,24 +63,9 @@ fn index() -> rocket::response::content::Json<std::string::String> {
     content::Json(lel)
 }
 
-#[get("/nuke")]
-fn nuke() -> String {
-    let conn = database::sqlite_connection();
-    conn.execute("DELETE FROM Musteri", params![])
-        .expect("müşterileri silemedik");
-    "nuked".to_string()
-}
-
-fn _data_insert(conn: &Connection, me: &Musteri) {
-    conn.execute(
-        "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-        params![me.isim, me.soyisim, me.fatura_adres, me.veli_adres, me.telefon, me.yemek, me.servis, me.turkce, me.matematik, me.fen, me.sosyal],
-    ).expect("müşteri girişinde sıkıntı");
-}
-
-#[get("/gonder?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>")]
+#[get("/api/send?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>")]
 #[allow(clippy::too_many_arguments)]
-fn proper_data_insert(
+fn send(
     isim: String,
     soyisim: String,
     fatura_adres: String,
@@ -124,17 +109,7 @@ fn proper_data_insert(
     }
 }
 
-#[get("/new")]
-fn new() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/new.html").expect("kayıt sayfası yok"))
-}
-
-#[get("/table")]
-fn table() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/table.html").expect("tablo sayfası yok"))
-}
-
-#[get("/update?<tel>&<kolum>&<yenim>")]
+#[get("/api/update?<tel>&<kolum>&<yenim>")]
 fn update(tel: i64, kolum: String, yenim: String) -> String {
     let conn = database::sqlite_connection();
     if kolum == "isim" || kolum == "soyisim" || kolum == "fatura_adres" || kolum == "veli_adres" {
@@ -176,23 +151,39 @@ fn update(tel: i64, kolum: String, yenim: String) -> String {
     }
 }
 
+#[get("/api/nuke")]
+fn nuke() -> String {
+    let conn = database::sqlite_connection();
+    conn.execute("DELETE FROM Musteri", params![])
+        .expect("müşterileri silemedik");
+    "nuked".to_string()
+}
+
+#[get("/")]
+fn index() -> Redirect {
+    Redirect::to(uri!(tablo))
+}
+
+#[get("/yeni")]
+fn yeni() -> rocket::response::content::Html<std::string::String> {
+    content::Html(fs::read_to_string("ui/yeni.html").expect("kayıt sayfası yok"))
+}
+
 #[get("/guncelle")]
 fn guncelle() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/update.html").expect("güncelleme sayfası yok"))
+    content::Html(fs::read_to_string("ui/guncelle.html").expect("güncelleme sayfası yok"))
 }
+
+#[get("/tablo")]
+fn tablo() -> rocket::response::content::Html<std::string::String> {
+    content::Html(fs::read_to_string("ui/tablo.html").expect("tablo sayfası yok"))
+}
+
 fn main() {
     rocket::ignite()
         .mount(
             "/",
-            routes![
-                index,
-                proper_data_insert,
-                nuke,
-                new,
-                table,
-                update,
-                guncelle
-            ],
+            routes![index, api, send, update, nuke, yeni, guncelle, tablo],
         )
         .launch();
 }

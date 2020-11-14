@@ -14,7 +14,7 @@
 
 <body>
     <div class="container">
-        <form action="/gonder" method="get">
+        <form action="/api/send" method="get">
             <label for="isim">İsim:</label>
             <input class="form-control" type="text" id="isim" name="isim" required>
             <label for="soyisim">Soyisim:</label>
@@ -51,7 +51,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary">Kaydet</button>
-            <a class="btn btn-danger" href="/nuke" role="button">NUKE (remove later)</a>
+            <a class="btn btn-danger" href="/api/nuke" role="button">NUKE (remove later)</a>
         </form>
     </div>
 </body>

@@ -61,3 +61,10 @@ pub fn data_hazirlama(conn: &Connection) -> Vec<serde_json::Value> {
     }
     bar
 }
+
+pub fn _data_insert(conn: &Connection, me: &Musteri) {
+    conn.execute(
+        "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
+        params![me.isim, me.soyisim, me.fatura_adres, me.veli_adres, me.telefon, me.yemek, me.servis, me.turkce, me.matematik, me.fen, me.sosyal],
+    ).expect("müşteri girişinde sıkıntı");
+}
