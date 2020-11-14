@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.css" rel="stylesheet" />
+
+    <title>Öğrenci Sil</title>
+</head>
+
+<body>
+    <div class="container">
+        <form action="/api/delete" method="get">
+            <label for="tel">Silinecek öğrencinin tel:</label>
+            <input class="form-control" type="text" id="tel" name="tel" required>
+            <button type="submit" class="btn btn-danger">Öğrenciyi Sil</button>
+        </form>
+    </div>
+</body>
+
+</html>

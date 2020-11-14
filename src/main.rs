@@ -159,6 +159,15 @@ fn nuke() -> String {
     "nuked".to_string()
 }
 
+#[get("/api/delete?<tel>")]
+fn delete(tel: i64) -> String {
+    let conn = database::sqlite_connection();
+    println!("{}", tel);
+    conn.execute("DELETE FROM Musteri WHERE telefon=?", params![tel])
+        .expect("müşterileri silemedik");
+    "öğrenci başarıyla silindi".to_string()
+}
+
 #[get("/")]
 fn index() -> Redirect {
     Redirect::to(uri!(tablo))
@@ -179,11 +188,16 @@ fn tablo() -> rocket::response::content::Html<std::string::String> {
     content::Html(fs::read_to_string("ui/tablo.html").expect("tablo sayfası yok"))
 }
 
+#[get("/sil")]
+fn sil() -> rocket::response::content::Html<std::string::String> {
+    content::Html(fs::read_to_string("ui/sil.html").expect("silme sayfası yok"))
+}
+
 fn main() {
     rocket::ignite()
         .mount(
             "/",
-            routes![index, api, send, update, nuke, yeni, guncelle, tablo],
+            routes![index, api, send, update, delete, nuke, yeni, guncelle, tablo, sil],
         )
         .launch();
 }
