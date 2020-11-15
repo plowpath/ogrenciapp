@@ -1,14 +1,15 @@
 use crate::Musteri;
+use anyhow::Result;
 use rusqlite::{params, Connection};
 use serde_json::json;
 use std::path::Path;
 
-pub fn sqlite_connection() -> Connection {
+pub fn sqlite_connection() -> Result<Connection, anyhow::Error> {
     let conn;
     if Path::new("deneme.db").exists() {
-        conn = Connection::open("deneme.db").expect("olması gereken database yok");
+        conn = Connection::open("deneme.db")?;
     } else {
-        conn = Connection::open("deneme.db").expect("olmaması gereken database oluşturulamıyor");
+        conn = Connection::open("deneme.db")?;
         conn.execute(
             "CREATE TABLE Musteri (
                           id              INTEGER PRIMARY KEY,
@@ -26,45 +27,33 @@ pub fn sqlite_connection() -> Connection {
 
                           )",
             params![],
-        )
-        .expect("yeni database oluştururken data girişini yapamadık");
+        )?;
     }
-    conn
+    Ok(conn)
 }
 
-pub fn data_hazirlama(conn: &Connection) -> Vec<serde_json::Value> {
-    let mut stmt = conn
-        .prepare("SELECT * FROM Musteri")
-        .expect("tüm listeye select atamadık");
-    let person_iter = stmt
-        .query_map(params![], |row| {
-            Ok(Musteri {
-                id: row.get(0).expect("id sütunu"),
-                isim: row.get(1).expect("isim sütunu"),
-                soyisim: row.get(2).expect("soyisim sütunu"),
-                fatura_adres: row.get(3).expect("fatura_adres sütunu"),
-                veli_adres: row.get(4).expect("veli_adres sütunu"),
-                telefon: row.get(5).expect("telefon sütunu"),
-                yemek: row.get(6).expect("yemek sütunu"),
-                servis: row.get(7).expect("servis sütunu"),
-                turkce: row.get(8).expect("turkce sütunu"),
-                matematik: row.get(9).expect("matematik sütunu"),
-                fen: row.get(10).expect("fen sütunu"),
-                sosyal: row.get(11).expect("sosyal sütunu"),
-            })
+pub fn data_hazirlama(conn: &Connection) -> Result<Vec<serde_json::Value>, anyhow::Error> {
+    let mut stmt = conn.prepare("SELECT * FROM Musteri")?;
+    let person_iter = stmt.query_map(params![], |row| {
+        Ok(Musteri {
+            id: row.get(0)?,
+            isim: row.get(1)?,
+            soyisim: row.get(2)?,
+            fatura_adres: row.get(3)?,
+            veli_adres: row.get(4)?,
+            telefon: row.get(5)?,
+            yemek: row.get(6)?,
+            servis: row.get(7)?,
+            turkce: row.get(8)?,
+            matematik: row.get(9)?,
+            fen: row.get(10)?,
+            sosyal: row.get(11)?,
         })
-        .expect("rusqlite tamamını iter ederken sıkıntı");
+    })?;
     let mut bar = Vec::new();
     for person in person_iter {
-        let footar = json!(person.expect("json serializasyonu"));
+        let footar = json!(person?);
         bar.push(footar);
     }
-    bar
-}
-
-pub fn _data_insert(conn: &Connection, me: &Musteri) {
-    conn.execute(
-        "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-        params![me.isim, me.soyisim, me.fatura_adres, me.veli_adres, me.telefon, me.yemek, me.servis, me.turkce, me.matematik, me.fen, me.sosyal],
-    ).expect("müşteri girişinde sıkıntı");
+    Ok(bar)
 }

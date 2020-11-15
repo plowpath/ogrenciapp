@@ -5,6 +5,7 @@ extern crate rocket;
 
 mod database;
 
+use anyhow::Result;
 use rocket::response::{content, Redirect};
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
@@ -47,9 +48,9 @@ impl Musteri {
 }
 
 #[get("/api")]
-fn api() -> rocket::response::content::Json<std::string::String> {
-    let conn = database::sqlite_connection();
-    let a = database::data_hazirlama(&conn);
+fn api() -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
+    let conn = database::sqlite_connection()?;
+    let a = database::data_hazirlama(&conn)?;
     let mut lel = String::new();
     lel += "[";
     for b in a {
@@ -61,7 +62,7 @@ fn api() -> rocket::response::content::Json<std::string::String> {
     } else {
         lel += "]";
     }
-    content::Json(lel)
+    Ok(content::Json(lel))
 }
 
 #[get("/api/send?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>")]
@@ -78,7 +79,7 @@ fn send(
     matematik: bool,
     fen: bool,
     sosyal: bool,
-) -> rocket::response::content::Json<std::string::String> {
+) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let me = Musteri {
         id: 0,
         isim,
@@ -93,7 +94,7 @@ fn send(
         fen,
         sosyal,
     };
-    let conn = database::sqlite_connection();
+    let conn = database::sqlite_connection()?;
     let checkphonenumber: Result<i64, rusqlite::Error> = conn.query_row(
         r#"SELECT * FROM Musteri WHERE telefon=?"#,
         params![me.telefon],
@@ -103,12 +104,12 @@ fn send(
         conn.execute(
             "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
             params![me.isim, me.soyisim, me.fatura_adres, me.veli_adres, me.telefon, me.yemek, me.servis, me.turkce, me.matematik, me.fen, me.sosyal],
-        ).expect("telefon kontrolünde sıkıntı");
+        )?;
         let b = json!({"success": true});
-        content::Json(b.to_string())
+        Ok(content::Json(b.to_string()))
     } else {
         let b = json!({"success": false});
-        content::Json(b.to_string())
+        Ok(content::Json(b.to_string()))
     }
 }
 
@@ -117,7 +118,7 @@ fn update(
     tel: i64,
     kolum: String,
     yenim: String,
-) -> rocket::response::content::Json<std::string::String> {
+) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let conn = database::sqlite_connection();
     if kolum == "isim" || kolum == "soyisim" || kolum == "fatura_adres" || kolum == "veli_adres" {
         let hereismysql = "UPDATE Musteri SET ".to_string()
@@ -126,9 +127,9 @@ fn update(
             + yenim.as_str()
             + "' WHERE telefon="
             + tel.to_string().as_str();
-        conn.execute(hereismysql.as_str(), params![]).unwrap();
+        conn?.execute(hereismysql.as_str(), params![])?;
         let b = json!({"success": true});
-        content::Json(b.to_string())
+        Ok(content::Json(b.to_string()))
     } else if kolum == "telefon" && yenim.parse::<i64>().is_ok() {
         let hereismysql = "UPDATE Musteri SET ".to_string()
             + kolum.as_str()
@@ -136,9 +137,9 @@ fn update(
             + yenim.as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn.execute(hereismysql.as_str(), params![]).unwrap();
+        conn?.execute(hereismysql.as_str(), params![])?;
         let b = json!({"success": true});
-        content::Json(b.to_string())
+        Ok(content::Json(b.to_string()))
     } else if (kolum == "yemek"
         || kolum == "servis"
         || kolum == "turkce"
@@ -153,61 +154,57 @@ fn update(
             + yenim.as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn.execute(hereismysql.as_str(), params![]).unwrap();
+        conn?.execute(hereismysql.as_str(), params![])?;
         let c = json!({"success": true});
-        content::Json(c.to_string())
+        Ok(content::Json(c.to_string()))
     } else {
         let b = json!({"success": false});
-        content::Json(b.to_string())
+        Ok(content::Json(b.to_string()))
     }
 }
 
 #[get("/api/nuke")]
-fn nuke() -> rocket::response::content::Json<std::string::String> {
+fn nuke() -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let conn = database::sqlite_connection();
-    conn.execute("DELETE FROM Musteri", params![])
-        .expect("müşterileri silemedik");
+    conn?.execute("DELETE FROM Musteri", params![])?;
     let b = json!({"success": true});
-    content::Json(b.to_string())
+    Ok(content::Json(b.to_string()))
 }
 
 #[get("/api/delete?<tel>")]
-fn delete(tel: i64) -> rocket::response::content::Json<std::string::String> {
+fn delete(tel: i64) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let conn = database::sqlite_connection();
     println!("{}", tel);
-    conn.execute("DELETE FROM Musteri WHERE telefon=?", params![tel])
-        .expect("müşterileri silemedik");
+    conn?.execute("DELETE FROM Musteri WHERE telefon=?", params![tel])?;
     let b = json!({"success": true});
-    content::Json(b.to_string())
+    Ok(content::Json(b.to_string()))
 }
 
 #[get("/api/getstudent?<tel>")]
-fn getstudent(tel: i64) -> rocket::response::content::Json<std::string::String> {
-    let conn = database::sqlite_connection();
-    let mut statement = conn
-        .prepare("SELECT * FROM Musteri WHERE telefon=?")
-        .expect("cant create the statemtn");
-    let one_student = statement
-        .query_map(params![tel], |row| {
-            Ok(Musteri {
-                id: row.get(0).expect("id sütunu"),
-                isim: row.get(1).expect("isim sütunu"),
-                soyisim: row.get(2).expect("soyisim sütunu"),
-                fatura_adres: row.get(3).expect("fatura_adres sütunu"),
-                veli_adres: row.get(4).expect("veli_adres sütunu"),
-                telefon: row.get(5).expect("telefon sütunu"),
-                yemek: row.get(6).expect("yemek sütunu"),
-                servis: row.get(7).expect("servis sütunu"),
-                turkce: row.get(8).expect("turkce sütunu"),
-                matematik: row.get(9).expect("matematik sütunu"),
-                fen: row.get(10).expect("fen sütunu"),
-                sosyal: row.get(11).expect("sosyal sütunu"),
-            })
+fn getstudent(
+    tel: i64,
+) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
+    let conn = database::sqlite_connection()?;
+    let mut statement = conn.prepare("SELECT * FROM Musteri WHERE telefon=?")?;
+    let one_student = statement.query_map(params![tel], |row| {
+        Ok(Musteri {
+            id: row.get(0)?,
+            isim: row.get(1)?,
+            soyisim: row.get(2)?,
+            fatura_adres: row.get(3)?,
+            veli_adres: row.get(4)?,
+            telefon: row.get(5)?,
+            yemek: row.get(6)?,
+            servis: row.get(7)?,
+            turkce: row.get(8)?,
+            matematik: row.get(9)?,
+            fen: row.get(10)?,
+            sosyal: row.get(11)?,
         })
-        .unwrap();
+    })?;
     let mut bar = Vec::new();
     for person in one_student {
-        let footar = json!(person.expect("json serializasyonu"));
+        let footar = json!(person?);
         bar.push(footar);
     }
     let mut lel = String::new();
@@ -221,7 +218,7 @@ fn getstudent(tel: i64) -> rocket::response::content::Json<std::string::String> 
     } else {
         lel += "]";
     }
-    content::Json(lel)
+    Ok(content::Json(lel))
 }
 
 #[get("/")]
@@ -230,23 +227,23 @@ fn index() -> Redirect {
 }
 
 #[get("/yeni")]
-fn yeni() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/yeni.html").expect("kayıt sayfası yok"))
+fn yeni() -> Result<rocket::response::content::Html<std::string::String>, anyhow::Error> {
+    Ok(content::Html(fs::read_to_string("ui/yeni.html")?))
 }
 
 #[get("/guncelle")]
-fn guncelle() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/guncelle.html").expect("güncelleme sayfası yok"))
+fn guncelle() -> Result<rocket::response::content::Html<std::string::String>, anyhow::Error> {
+    Ok(content::Html(fs::read_to_string("ui/guncelle.html")?))
 }
 
 #[get("/tablo")]
-fn tablo() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/tablo.html").expect("tablo sayfası yok"))
+fn tablo() -> Result<rocket::response::content::Html<std::string::String>, anyhow::Error> {
+    Ok(content::Html(fs::read_to_string("ui/tablo.html")?))
 }
 
 #[get("/sil")]
-fn sil() -> rocket::response::content::Html<std::string::String> {
-    content::Html(fs::read_to_string("ui/sil.html").expect("silme sayfası yok"))
+fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow::Error> {
+    Ok(content::Html(fs::read_to_string("ui/sil.html")?))
 }
 
 fn main() {
