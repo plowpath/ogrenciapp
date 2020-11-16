@@ -247,7 +247,66 @@ fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow:
     Ok(content::Html(fs::read_to_string("ui/sil.html")?))
 }
 
+fn calculate(tel: i64) -> Result<(), anyhow::Error> {
+    let conn = database::sqlite_connection()?;
+    let mut statement = conn.prepare("SELECT * FROM Musteri WHERE telefon=?")?;
+    let one_student = statement.query_map(params![tel], |row| {
+        Ok(Musteri {
+            id: row.get(0)?,
+            isim: row.get(1)?,
+            soyisim: row.get(2)?,
+            fatura_adres: row.get(3)?,
+            veli_adres: row.get(4)?,
+            telefon: row.get(5)?,
+            yemek: row.get(6)?,
+            servis: row.get(7)?,
+            turkce: row.get(8)?,
+            matematik: row.get(9)?,
+            fen: row.get(10)?,
+            sosyal: row.get(11)?,
+        })
+    })?;
+    let mut para = 0;
+    for person in one_student {
+        let brrr = person?;
+        if brrr.yemek {
+            para += 100
+        } else {
+            para += 0
+        }
+        if brrr.servis {
+            para += 100
+        } else {
+            para += 0
+        }
+        if brrr.turkce {
+            para += 100
+        } else {
+            para += 0
+        }
+        if brrr.matematik {
+            para += 100
+        } else {
+            para += 0
+        }
+        if brrr.fen {
+            para += 100
+        } else {
+            para += 0
+        }
+        if brrr.sosyal {
+            para += 100
+        } else {
+            para += 0
+        }
+    }
+    print!("{}", para);
+    Ok(())
+}
+
 fn main() {
+    let tel = 30;
+    calculate(tel).unwrap();
     rocket::ignite()
         .mount(
             "/",
