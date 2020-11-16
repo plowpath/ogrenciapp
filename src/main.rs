@@ -119,7 +119,7 @@ fn update(
     kolum: String,
     yenim: String,
 ) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection();
+    let conn = database::sqlite_connection()?;
     if kolum == "isim" || kolum == "soyisim" || kolum == "fatura_adres" || kolum == "veli_adres" {
         let hereismysql = "UPDATE Musteri SET ".to_string()
             + kolum.as_str()
@@ -127,7 +127,7 @@ fn update(
             + yenim.as_str()
             + "' WHERE telefon="
             + tel.to_string().as_str();
-        conn?.execute(hereismysql.as_str(), params![])?;
+        conn.execute(hereismysql.as_str(), params![])?;
         let b = json!({"success": true});
         Ok(content::Json(b.to_string()))
     } else if kolum == "telefon" && yenim.parse::<i64>().is_ok() {
@@ -137,7 +137,7 @@ fn update(
             + yenim.as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn?.execute(hereismysql.as_str(), params![])?;
+        conn.execute(hereismysql.as_str(), params![])?;
         let b = json!({"success": true});
         Ok(content::Json(b.to_string()))
     } else if (kolum == "yemek"
@@ -154,7 +154,7 @@ fn update(
             + yenim.as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn?.execute(hereismysql.as_str(), params![])?;
+        conn.execute(hereismysql.as_str(), params![])?;
         let c = json!({"success": true});
         Ok(content::Json(c.to_string()))
     } else {
@@ -165,17 +165,17 @@ fn update(
 
 #[get("/api/nuke")]
 fn nuke() -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection();
-    conn?.execute("DELETE FROM Musteri", params![])?;
+    let conn = database::sqlite_connection()?;
+    conn.execute("DELETE FROM Musteri", params![])?;
     let b = json!({"success": true});
     Ok(content::Json(b.to_string()))
 }
 
 #[get("/api/delete?<tel>")]
 fn delete(tel: i64) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection();
+    let conn = database::sqlite_connection()?;
     println!("{}", tel);
-    conn?.execute("DELETE FROM Musteri WHERE telefon=?", params![tel])?;
+    conn.execute("DELETE FROM Musteri WHERE telefon=?", params![tel])?;
     let b = json!({"success": true});
     Ok(content::Json(b.to_string()))
 }
@@ -214,7 +214,8 @@ fn getstudent(
     }
     lel.pop();
     if lel.is_empty() {
-        println!("öğrenci bulunamadı")
+        println!("öğrenci bulunamadı");
+        lel = r#"{"success": false}"#.to_string()
     } else {
         lel += "]";
     }
