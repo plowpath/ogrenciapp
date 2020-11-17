@@ -307,7 +307,7 @@ fn calculate(
     sosyal: bool,
     taksit: i64,
     mut borc: i64,
-    kalanborc: i64,
+    mut kalanborc: i64,
     kalantaksit: i64,
 ) -> Result<[i64; 4], anyhow::Error> {
     if yemek {
@@ -340,7 +340,11 @@ fn calculate(
     } else {
         borc += 0
     }
+    if taksit == kalantaksit {
+        kalanborc = borc;
+    }
     let para = [taksit, borc, kalanborc, kalantaksit];
+    println!("{:?}", para);
 
     Ok(para)
 }
