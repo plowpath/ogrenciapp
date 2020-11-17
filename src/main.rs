@@ -26,6 +26,11 @@ pub struct Musteri {
     matematik: bool,
     fen: bool,
     sosyal: bool,
+    taksit: i64,
+    borc: i64,
+    aylik: i64,
+    kalanborc: i64,
+    kalantaksit: i64,
 }
 
 impl Musteri {
@@ -43,6 +48,11 @@ impl Musteri {
             matematik: true,
             fen: true,
             sosyal: false,
+            taksit: 12,
+            borc: 500,
+            aylik: 100,
+            kalanborc: 300,
+            kalantaksit: 6,
         }
     }
 }
@@ -65,7 +75,7 @@ fn api() -> Result<rocket::response::content::Json<std::string::String>, anyhow:
     Ok(content::Json(lel))
 }
 
-#[get("/api/send?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>")]
+#[get("/api/send?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>&<taksit>")]
 #[allow(clippy::too_many_arguments)]
 fn send(
     isim: String,
@@ -79,6 +89,7 @@ fn send(
     matematik: bool,
     fen: bool,
     sosyal: bool,
+    taksit: i64,
 ) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let me = Musteri {
         id: 0,
@@ -93,7 +104,30 @@ fn send(
         matematik,
         fen,
         sosyal,
+        taksit,
+        aylik: 0,
+        borc: 0,
+        kalantaksit: taksit,
+        kalanborc: 0,
     };
+
+    let fixingstuff = calculate(
+        yemek,
+        servis,
+        turkce,
+        matematik,
+        fen,
+        sosyal,
+        taksit,
+        me.borc,
+        me.kalanborc,
+        me.kalantaksit,
+    )?;
+    let fnborc = fixingstuff[0];
+    let fnaylik = fixingstuff[1];
+    let fnkalanborc = fixingstuff[2];
+    let fnkalantaksit = fixingstuff[3];
+
     let conn = database::sqlite_connection()?;
     let checkphonenumber: Result<i64, rusqlite::Error> = conn.query_row(
         r#"SELECT * FROM Musteri WHERE telefon=?"#,
@@ -102,8 +136,25 @@ fn send(
     );
     if checkphonenumber.is_err() {
         conn.execute(
-            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-            params![me.isim, me.soyisim, me.fatura_adres, me.veli_adres, me.telefon, me.yemek, me.servis, me.turkce, me.matematik, me.fen, me.sosyal],
+            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal, taksit, borc, aylik, kalanborc, kalantaksit ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",
+            params![
+                me.isim,
+                me.soyisim,
+                me.fatura_adres,
+                me.veli_adres,
+                me.telefon,
+                me.yemek,
+                me.servis,
+                me.turkce,
+                me.matematik,
+                me.fen,
+                me.sosyal,
+                me.taksit,
+                fnborc,
+                fnaylik,
+                fnkalanborc,
+                fnkalantaksit,
+            ],
         )?;
         let b = json!({"success": true});
         Ok(content::Json(b.to_string()))
@@ -200,6 +251,11 @@ fn getstudent(
             matematik: row.get(9)?,
             fen: row.get(10)?,
             sosyal: row.get(11)?,
+            taksit: row.get(12)?,
+            borc: row.get(13)?,
+            aylik: row.get(14)?,
+            kalanborc: row.get(15)?,
+            kalantaksit: row.get(16)?,
         })
     })?;
     let mut bar = Vec::new();
@@ -245,6 +301,60 @@ fn tablo() -> Result<rocket::response::content::Html<std::string::String>, anyho
 #[get("/sil")]
 fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow::Error> {
     Ok(content::Html(fs::read_to_string("ui/sil.html")?))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn calculate(
+    yemek: bool,
+    servis: bool,
+    turkce: bool,
+    matematik: bool,
+    fen: bool,
+    sosyal: bool,
+    taksit: i64,
+    mut borc: i64,
+
+    mut kalanborc: i64,
+    kalantaksit: i64,
+) -> Result<[i64; 4], anyhow::Error> {
+    if yemek {
+        borc += 300
+    } else {
+        borc += 0
+    }
+    if servis {
+        borc += 200
+    } else {
+        borc += 0
+    }
+    if turkce {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if matematik {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if fen {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if sosyal {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if taksit == kalantaksit {
+        kalanborc = borc;
+    }
+    let aylik = borc / taksit;
+    let para = [borc, aylik, kalanborc, kalantaksit];
+    println!("{:?}", para);
+
+    Ok(para)
 }
 
 fn main() {
