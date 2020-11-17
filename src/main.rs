@@ -346,8 +346,6 @@ fn calculate(
 }
 
 fn main() {
-    //let tel = 5438550662;
-    //println!("{:?}", calculate(tel).unwrap());
     rocket::ignite()
         .mount(
             "/",
