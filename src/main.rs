@@ -104,9 +104,26 @@ fn send(
         sosyal,
         taksit,
         borc: 0,
-        kalantaksit: 0,
+        kalantaksit: taksit,
         kalanborc: 0,
     };
+
+    let fixingstuff = calculate(
+        yemek,
+        servis,
+        turkce,
+        matematik,
+        fen,
+        sosyal,
+        taksit,
+        me.borc,
+        me.kalanborc,
+        me.kalantaksit,
+    )?;
+    let fnborc = fixingstuff[1];
+    let fnkalanborc = fixingstuff[2];
+    let fnkalantaksit = fixingstuff[3];
+
     let conn = database::sqlite_connection()?;
     let checkphonenumber: Result<i64, rusqlite::Error> = conn.query_row(
         r#"SELECT * FROM Musteri WHERE telefon=?"#,
@@ -115,7 +132,7 @@ fn send(
     );
     if checkphonenumber.is_err() {
         conn.execute(
-            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal, taksit, borc, kalantaksit, kalanborc) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
+            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal, taksit, borc, kalanborc, kalantaksit ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
             params![
                 me.isim,
                 me.soyisim,
@@ -129,9 +146,9 @@ fn send(
                 me.fen,
                 me.sosyal,
                 me.taksit,
-                me.borc,
-                me.kalantaksit,
-                me.kalanborc
+                fnborc,
+                fnkalanborc,
+                fnkalantaksit,
             ],
         )?;
         let b = json!({"success": true});
@@ -280,70 +297,57 @@ fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow:
     Ok(content::Html(fs::read_to_string("ui/sil.html")?))
 }
 
-fn _calculate(tel: i64) -> Result<(), anyhow::Error> {
-    let conn = database::sqlite_connection()?;
-    let mut statement = conn.prepare("SELECT * FROM Musteri WHERE telefon=?")?;
-    let one_student = statement.query_map(params![tel], |row| {
-        Ok(Musteri {
-            id: row.get(0)?,
-            isim: row.get(1)?,
-            soyisim: row.get(2)?,
-            fatura_adres: row.get(3)?,
-            veli_adres: row.get(4)?,
-            telefon: row.get(5)?,
-            yemek: row.get(6)?,
-            servis: row.get(7)?,
-            turkce: row.get(8)?,
-            matematik: row.get(9)?,
-            fen: row.get(10)?,
-            sosyal: row.get(11)?,
-            taksit: row.get(12)?,
-            borc: row.get(13)?,
-            kalanborc: row.get(14)?,
-            kalantaksit: row.get(15)?,
-        })
-    })?;
-    let mut para = 0;
-    for person in one_student {
-        let brrr = person?;
-        if brrr.yemek {
-            para += 100
-        } else {
-            para += 0
-        }
-        if brrr.servis {
-            para += 100
-        } else {
-            para += 0
-        }
-        if brrr.turkce {
-            para += 100
-        } else {
-            para += 0
-        }
-        if brrr.matematik {
-            para += 100
-        } else {
-            para += 0
-        }
-        if brrr.fen {
-            para += 100
-        } else {
-            para += 0
-        }
-        if brrr.sosyal {
-            para += 100
-        } else {
-            para += 0
-        }
+#[allow(clippy::too_many_arguments)]
+fn calculate(
+    yemek: bool,
+    servis: bool,
+    turkce: bool,
+    matematik: bool,
+    fen: bool,
+    sosyal: bool,
+    taksit: i64,
+    mut borc: i64,
+    kalanborc: i64,
+    kalantaksit: i64,
+) -> Result<[i64; 4], anyhow::Error> {
+    if yemek {
+        borc += 300
+    } else {
+        borc += 0
     }
-    print!("{}", para);
-    Ok(())
+    if servis {
+        borc += 200
+    } else {
+        borc += 0
+    }
+    if turkce {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if matematik {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if fen {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    if sosyal {
+        borc += 2500
+    } else {
+        borc += 0
+    }
+    let para = [taksit, borc, kalanborc, kalantaksit];
+
+    Ok(para)
 }
 
 fn main() {
-    //let tel = 30;
-    //calculate(tel).unwrap();
+    //let tel = 5438550662;
+    //println!("{:?}", calculate(tel).unwrap());
     rocket::ignite()
         .mount(
             "/",
