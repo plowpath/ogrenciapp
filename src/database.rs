@@ -26,6 +26,7 @@ pub fn sqlite_connection() -> Result<Connection, anyhow::Error> {
                           sosyal          INTEGER,
                           taksit          INTEGER,
                           borc            INTEGER,
+                          aylik           INTEGER,
                           kalanborc       INTEGER,
                           kalantaksit     INTEGER
 
@@ -54,8 +55,9 @@ pub fn data_hazirlama(conn: &Connection) -> Result<Vec<serde_json::Value>, anyho
             sosyal: row.get(11)?,
             taksit: row.get(12)?,
             borc: row.get(13)?,
-            kalanborc: row.get(14)?,
-            kalantaksit: row.get(15)?,
+            aylik: row.get(14)?,
+            kalanborc: row.get(15)?,
+            kalantaksit: row.get(16)?,
         })
     })?;
     let mut bar = Vec::new();

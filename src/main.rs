@@ -28,6 +28,7 @@ pub struct Musteri {
     sosyal: bool,
     taksit: i64,
     borc: i64,
+    aylik: i64,
     kalanborc: i64,
     kalantaksit: i64,
 }
@@ -49,6 +50,7 @@ impl Musteri {
             sosyal: false,
             taksit: 12,
             borc: 500,
+            aylik: 100,
             kalanborc: 300,
             kalantaksit: 6,
         }
@@ -103,6 +105,7 @@ fn send(
         fen,
         sosyal,
         taksit,
+        aylik: 0,
         borc: 0,
         kalantaksit: taksit,
         kalanborc: 0,
@@ -120,7 +123,8 @@ fn send(
         me.kalanborc,
         me.kalantaksit,
     )?;
-    let fnborc = fixingstuff[1];
+    let fnborc = fixingstuff[0];
+    let fnaylik = fixingstuff[1];
     let fnkalanborc = fixingstuff[2];
     let fnkalantaksit = fixingstuff[3];
 
@@ -132,7 +136,7 @@ fn send(
     );
     if checkphonenumber.is_err() {
         conn.execute(
-            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal, taksit, borc, kalanborc, kalantaksit ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
+            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal, taksit, borc, aylik, kalanborc, kalantaksit ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",
             params![
                 me.isim,
                 me.soyisim,
@@ -147,6 +151,7 @@ fn send(
                 me.sosyal,
                 me.taksit,
                 fnborc,
+                fnaylik,
                 fnkalanborc,
                 fnkalantaksit,
             ],
@@ -248,8 +253,9 @@ fn getstudent(
             sosyal: row.get(11)?,
             taksit: row.get(12)?,
             borc: row.get(13)?,
-            kalanborc: row.get(14)?,
-            kalantaksit: row.get(15)?,
+            aylik: row.get(14)?,
+            kalanborc: row.get(15)?,
+            kalantaksit: row.get(16)?,
         })
     })?;
     let mut bar = Vec::new();
@@ -307,6 +313,7 @@ fn calculate(
     sosyal: bool,
     taksit: i64,
     mut borc: i64,
+
     mut kalanborc: i64,
     kalantaksit: i64,
 ) -> Result<[i64; 4], anyhow::Error> {
@@ -343,7 +350,8 @@ fn calculate(
     if taksit == kalantaksit {
         kalanborc = borc;
     }
-    let para = [taksit, borc, kalanborc, kalantaksit];
+    let aylik = borc / taksit;
+    let para = [borc, aylik, kalanborc, kalantaksit];
     println!("{:?}", para);
 
     Ok(para)
