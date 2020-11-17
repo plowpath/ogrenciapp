@@ -26,6 +26,10 @@ pub struct Musteri {
     matematik: bool,
     fen: bool,
     sosyal: bool,
+    taksit: i64,
+    borc: i64,
+    kalanborc: i64,
+    kalantaksit: i64,
 }
 
 impl Musteri {
@@ -43,6 +47,10 @@ impl Musteri {
             matematik: true,
             fen: true,
             sosyal: false,
+            taksit: 12,
+            borc: 500,
+            kalanborc: 300,
+            kalantaksit: 6,
         }
     }
 }
@@ -65,7 +73,7 @@ fn api() -> Result<rocket::response::content::Json<std::string::String>, anyhow:
     Ok(content::Json(lel))
 }
 
-#[get("/api/send?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>")]
+#[get("/api/send?<isim>&<soyisim>&<fatura_adres>&<veli_adres>&<telefon>&<yemek>&<servis>&<turkce>&<matematik>&<fen>&<sosyal>&<taksit>")]
 #[allow(clippy::too_many_arguments)]
 fn send(
     isim: String,
@@ -79,6 +87,7 @@ fn send(
     matematik: bool,
     fen: bool,
     sosyal: bool,
+    taksit: i64,
 ) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let me = Musteri {
         id: 0,
@@ -93,6 +102,10 @@ fn send(
         matematik,
         fen,
         sosyal,
+        taksit,
+        borc: 0,
+        kalantaksit: 0,
+        kalanborc: 0,
     };
     let conn = database::sqlite_connection()?;
     let checkphonenumber: Result<i64, rusqlite::Error> = conn.query_row(
@@ -102,8 +115,24 @@ fn send(
     );
     if checkphonenumber.is_err() {
         conn.execute(
-            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-            params![me.isim, me.soyisim, me.fatura_adres, me.veli_adres, me.telefon, me.yemek, me.servis, me.turkce, me.matematik, me.fen, me.sosyal],
+            "INSERT INTO Musteri (isim, soyisim, fatura_adres, veli_adres, telefon, yemek, servis, turkce, matematik, fen, sosyal, taksit, borc, kalantaksit, kalanborc) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
+            params![
+                me.isim,
+                me.soyisim,
+                me.fatura_adres,
+                me.veli_adres,
+                me.telefon,
+                me.yemek,
+                me.servis,
+                me.turkce,
+                me.matematik,
+                me.fen,
+                me.sosyal,
+                me.taksit,
+                me.borc,
+                me.kalantaksit,
+                me.kalanborc
+            ],
         )?;
         let b = json!({"success": true});
         Ok(content::Json(b.to_string()))
@@ -200,6 +229,10 @@ fn getstudent(
             matematik: row.get(9)?,
             fen: row.get(10)?,
             sosyal: row.get(11)?,
+            taksit: row.get(12)?,
+            borc: row.get(13)?,
+            kalanborc: row.get(14)?,
+            kalantaksit: row.get(15)?,
         })
     })?;
     let mut bar = Vec::new();
@@ -247,7 +280,7 @@ fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow:
     Ok(content::Html(fs::read_to_string("ui/sil.html")?))
 }
 
-fn calculate(tel: i64) -> Result<(), anyhow::Error> {
+fn _calculate(tel: i64) -> Result<(), anyhow::Error> {
     let conn = database::sqlite_connection()?;
     let mut statement = conn.prepare("SELECT * FROM Musteri WHERE telefon=?")?;
     let one_student = statement.query_map(params![tel], |row| {
@@ -264,6 +297,10 @@ fn calculate(tel: i64) -> Result<(), anyhow::Error> {
             matematik: row.get(9)?,
             fen: row.get(10)?,
             sosyal: row.get(11)?,
+            taksit: row.get(12)?,
+            borc: row.get(13)?,
+            kalanborc: row.get(14)?,
+            kalantaksit: row.get(15)?,
         })
     })?;
     let mut para = 0;
@@ -305,8 +342,8 @@ fn calculate(tel: i64) -> Result<(), anyhow::Error> {
 }
 
 fn main() {
-    let tel = 30;
-    calculate(tel).unwrap();
+    //let tel = 30;
+    //calculate(tel).unwrap();
     rocket::ignite()
         .mount(
             "/",
