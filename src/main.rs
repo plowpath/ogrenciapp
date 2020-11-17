@@ -111,7 +111,7 @@ fn send(
         kalanborc: 0,
     };
 
-    let fixingstuff = calculate(
+    let fixingstuff = calculate_new(
         yemek,
         servis,
         turkce,
@@ -120,7 +120,7 @@ fn send(
         sosyal,
         taksit,
         me.borc,
-        me.kalanborc,
+        //me.kalanborc,
         me.kalantaksit,
     )?;
     let fnborc = fixingstuff[0];
@@ -208,6 +208,32 @@ fn update(
         conn.execute(hereismysql.as_str(), params![])?;
         let c = json!({"success": true});
         Ok(content::Json(c.to_string()))
+    } else if kolum == "kalantaksit" && yenim.parse::<i64>().is_ok() {
+        let aylik: i64 = conn
+            .query_row(
+                "SELECT * FROM Musteri WHERE telefon=?",
+                params![tel],
+                |row| row.get(14),
+            )
+            .unwrap();
+        println!("{}", aylik);
+        println!("{}", yenim.parse::<i64>().unwrap());
+        let (_, kalanborc) = calculate_update(aylik, yenim.parse::<i64>().unwrap());
+        let hereismysql = "UPDATE Musteri SET ".to_string()
+            + kolum.as_str()
+            + "="
+            + yenim.as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(hereismysql.as_str(), params![])?;
+        println!("{}", kalanborc);
+        let hereismysql2 = "UPDATE Musteri SET kalanborc=".to_string()
+            + kalanborc.to_string().as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(hereismysql2.as_str(), params![])?;
+        let b = json!({"success": true});
+        Ok(content::Json(b.to_string()))
     } else {
         let b = json!({"success": false});
         Ok(content::Json(b.to_string()))
@@ -304,7 +330,7 @@ fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow:
 }
 
 #[allow(clippy::too_many_arguments)]
-fn calculate(
+fn calculate_new(
     yemek: bool,
     servis: bool,
     turkce: bool,
@@ -313,8 +339,7 @@ fn calculate(
     sosyal: bool,
     taksit: i64,
     mut borc: i64,
-
-    mut kalanborc: i64,
+    //mut kalanborc: i64,
     kalantaksit: i64,
 ) -> Result<[i64; 4], anyhow::Error> {
     if yemek {
@@ -347,14 +372,23 @@ fn calculate(
     } else {
         borc += 0
     }
-    if taksit == kalantaksit {
-        kalanborc = borc;
-    }
     let aylik = borc / taksit;
+    let kalanborc;
+    if taksit == kalantaksit {
+        kalanborc = borc
+    } else {
+        kalanborc = kalantaksit * aylik
+    }
+
     let para = [borc, aylik, kalanborc, kalantaksit];
     println!("{:?}", para);
 
     Ok(para)
+}
+
+fn calculate_update(aylik: i64, kalantaksit: i64) -> (i64, i64) {
+    let kalanborc = aylik * kalantaksit;
+    (kalantaksit, kalanborc)
 }
 
 fn main() {
