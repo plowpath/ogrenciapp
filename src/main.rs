@@ -209,16 +209,14 @@ fn update(
         let c = json!({"success": true});
         Ok(content::Json(c.to_string()))
     } else if kolum == "kalantaksit" && yenim.parse::<i64>().is_ok() {
-        let aylik: i64 = conn
-            .query_row(
-                "SELECT * FROM Musteri WHERE telefon=?",
-                params![tel],
-                |row| row.get(14),
-            )
-            .unwrap();
+        let aylik: i64 = conn.query_row(
+            "SELECT * FROM Musteri WHERE telefon=?",
+            params![tel],
+            |row| row.get(14),
+        )?;
         println!("{}", aylik);
-        println!("{}", yenim.parse::<i64>().unwrap());
-        let (_, kalanborc) = calculate_update(aylik, yenim.parse::<i64>().unwrap());
+        println!("{}", yenim.parse::<i64>()?);
+        let (_, kalanborc) = calculate_update(aylik, yenim.parse::<i64>()?);
         let hereismysql = "UPDATE Musteri SET ".to_string()
             + kolum.as_str()
             + "="
