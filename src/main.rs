@@ -327,6 +327,15 @@ fn sil() -> Result<rocket::response::content::Html<std::string::String>, anyhow:
     Ok(content::Html(fs::read_to_string("ui/sil.html")?))
 }
 
+#[get("/api/data?<gimme>")]
+fn api_data(
+    gimme: String,
+) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
+    let lel = hesap(gimme.clone())?;
+    let lel = json!({ gimme: lel });
+    Ok(content::Json(lel.to_string()))
+}
+
 #[allow(clippy::too_many_arguments)]
 fn calculate_new(
     yemek: bool,
@@ -389,11 +398,23 @@ fn calculate_update(aylik: i64, kalantaksit: i64) -> (i64, i64) {
     (kalantaksit, kalanborc)
 }
 
+fn hesap(kalanborc: String) -> Result<i64, anyhow::Error> {
+    let conn = database::sqlite_connection()?;
+    let sqlsorgu = "SELECT SUM(".to_string() + kalanborc.as_str() + ") FROM Musteri";
+    let stt: i64 = conn.query_row(sqlsorgu.as_str(), params![], |row| row.get(0))?;
+    println!("{}", stt);
+
+    Ok(stt)
+}
+
 fn main() {
     rocket::ignite()
         .mount(
             "/",
-            routes![index, api, send, update, delete, getstudent, nuke, yeni, guncelle, tablo, sil],
+            routes![
+                index, api, send, update, delete, getstudent, nuke, api_data, yeni, guncelle,
+                tablo, sil
+            ],
         )
         .launch();
 }
