@@ -4,6 +4,7 @@ use rusqlite::{params, Connection};
 use serde_json::json;
 use std::path::Path;
 
+/// database olarak sqlite kullanmaktayız, bu fonksiyon varsa database'e bağlanır yoksa bir tane oluşturup bağlanır
 pub fn sqlite_connection() -> Result<Connection, anyhow::Error> {
     let conn;
     if Path::new("deneme.db").exists() {
@@ -37,6 +38,7 @@ pub fn sqlite_connection() -> Result<Connection, anyhow::Error> {
     Ok(conn)
 }
 
+/// database'imizdeki tüm satır ve sütunları sorgulayan fonksiyonumuz (tablomuzu oluşturmaktadır)
 pub fn data_hazirlama(conn: &Connection) -> Result<Vec<serde_json::Value>, anyhow::Error> {
     let mut stmt = conn.prepare("SELECT * FROM Musteri")?;
     let person_iter = stmt.query_map(params![], |row| {
@@ -66,4 +68,14 @@ pub fn data_hazirlama(conn: &Connection) -> Result<Vec<serde_json::Value>, anyho
         bar.push(footar);
     }
     Ok(bar)
+}
+
+/// en ilkel haliyle raporlama yapmamızı sağlayan fonksiyon **todo**
+pub fn hesap(kalanborc: String) -> Result<i64, anyhow::Error> {
+    let conn = sqlite_connection()?;
+    let sqlsorgu = "SELECT SUM(".to_string() + kalanborc.as_str() + ") FROM Musteri";
+    let stt: i64 = conn.query_row(sqlsorgu.as_str(), params![], |row| row.get(0))?;
+    println!("{}", stt);
+
+    Ok(stt)
 }
