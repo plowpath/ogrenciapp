@@ -5,20 +5,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-        crossorigin="anonymous"></script>
-    <link href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/1.0.0/mdb.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-CuOF+2SnTUfTwSZjCXf01h7uYhfOBuxIhGKPbfEJ3+FqH/s6cIFN9bGr1HmAg4fQ" crossorigin="anonymous">
 
     <title>Öğrenci Güncelle</title>
 </head>
 
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-popRpmFF9JQgExhfw5tZT4I9/CI5e2QcuUZPOVXb1m7qUmeR2b50u+YFEYe1wgzy"
+        crossorigin="anonymous"></script>
+
     <div class="container">
         <form action="/api/update" method="get">
             <label for="isim">Değiştirilecek Öğrenci Tel:</label>
@@ -31,18 +28,23 @@
                     Seç
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="isim"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="soyisim"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="fatura_adres"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="veli_adres"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="telefon"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="yemek"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="servis"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="turkce"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="matematik"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="fen"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="sosyal"></li>
-                    <li><input type="submit" class="form-control btn btn-link" name="kolum" value="kalan_taksit"></li>
+                    <li><input type="submit" class="form-control btn btn-outline-success" name="kolum" value="isim">
+                    </li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="soyisim"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="fatura_adres">
+                    </li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="veli_adres">
+                    </li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="telefon"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="yemek"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="servis"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="turkce"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="matematik">
+                    </li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="fen"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="sosyal"></li>
+                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="kalan_taksit">
+                    </li>
                 </div>
             </div>
         </form>
