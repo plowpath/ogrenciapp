@@ -11,18 +11,17 @@ use serde_json::json;
 #[get("/api")]
 pub fn api() -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
     let conn = database::sqlite_connection()?;
-    let a = database::data_hazirlama(&conn)?;
-    let mut lel = String::new();
-    lel += "[";
-    for b in a {
-        lel += format!("{},", b).as_str();
+    let ogrenciler_iter = database::data_hazirlama(&conn)?;
+    let mut ogrenciler = String::new();
+    ogrenciler += "[";
+    for ogrenci in ogrenciler_iter {
+        ogrenciler += format!("{},", ogrenci).as_str();
     }
-    lel.pop();
-    if lel.is_empty() {
-    } else {
-        lel += "]";
+    ogrenciler.pop();
+    if !ogrenciler.is_empty() {
+        ogrenciler += "]";
     }
-    Ok(content::Json(lel))
+    Ok(content::Json(ogrenciler))
 }
 
 /// öğrenci eklememizi sağlayan apimiz
