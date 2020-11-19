@@ -247,11 +247,10 @@ pub fn getstudent(
 }
 
 /// basit raporlama apisi
-#[get("/api/data?<gimme>")]
+#[get("/api/data?<istiyorum>")]
 pub fn api_data(
-    gimme: String,
+    istiyorum: String,
 ) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let lel = hesap(gimme.clone())?;
-    let lel = json!({ gimme: lel });
-    Ok(content::Json(lel.to_string()))
+    let sonuc = hesap(&istiyorum)?;
+    Ok(content::Json(json!({ istiyorum: sonuc }).to_string()))
 }

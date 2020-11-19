@@ -7,10 +7,10 @@ use std::path::Path;
 /// database olarak sqlite kullanmaktayız, bu fonksiyon varsa database'e bağlanır yoksa bir tane oluşturup bağlanır
 pub fn sqlite_connection() -> Result<Connection, anyhow::Error> {
     let conn;
-    if Path::new("deneme.db").exists() {
-        conn = Connection::open("deneme.db")?;
+    if Path::new("ogrenciler.db").exists() {
+        conn = Connection::open("ogrenciler.db")?;
     } else {
-        conn = Connection::open("deneme.db")?;
+        conn = Connection::open("ogrenciler.db")?;
         conn.execute(
             "CREATE TABLE Ogrenci (
                           id              INTEGER PRIMARY KEY,
@@ -34,13 +34,14 @@ pub fn sqlite_connection() -> Result<Connection, anyhow::Error> {
             params![],
         )?;
     }
+
     Ok(conn)
 }
 
 /// database'imizdeki tüm satır ve sütunları sorgulayan fonksiyonumuz (tablomuzu oluşturmaktadır)
 pub fn data_hazirlama(conn: &Connection) -> Result<Vec<serde_json::Value>, anyhow::Error> {
     let mut stmt = conn.prepare("SELECT * FROM Ogrenci")?;
-    let person_iter = stmt.query_map(params![], |row| {
+    let ogrenci_iter = stmt.query_map(params![], |row| {
         Ok(Ogrenci {
             id: row.get(0)?,
             isim: row.get(1)?,
@@ -61,19 +62,19 @@ pub fn data_hazirlama(conn: &Connection) -> Result<Vec<serde_json::Value>, anyho
             kalan_taksit: row.get(16)?,
         })
     })?;
-    let mut bar = Vec::new();
-    for person in person_iter {
-        let footar = json!(person?);
-        bar.push(footar);
+    let mut ogrenciler = Vec::new();
+    for ogrenci in ogrenci_iter {
+        ogrenciler.push(json!(ogrenci?));
     }
-    Ok(bar)
+
+    Ok(ogrenciler)
 }
 
 /// en ilkel haliyle raporlama yapmamızı sağlayan fonksiyon **todo**
-pub fn hesap(kalanborc: String) -> Result<i64, anyhow::Error> {
+pub fn hesap(istenilen: &str) -> Result<i64, anyhow::Error> {
     let conn = sqlite_connection()?;
-    let sqlsorgu = "SELECT SUM(".to_string() + kalanborc.as_str() + ") FROM Ogrenci";
-    let stt: i64 = conn.query_row(sqlsorgu.as_str(), params![], |row| row.get(0))?;
+    let sqlsorgu = "SELECT SUM(".to_string() + istenilen + ") FROM Ogrenci";
+    let sonuc: i64 = conn.query_row(sqlsorgu.as_str(), params![], |row| row.get(0))?;
 
-    Ok(stt)
+    Ok(sonuc)
 }
