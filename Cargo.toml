@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 serde_json = { version = "1.0.59", features = ["preserve_order"] }
-rocket = "0.4.5"
+rocket = "0.4.6"
 serde = { version = "1.0.117", features = ["derive"] }
 rusqlite = { version = "0.24.1", features = ["bundled"] }
 anyhow = "1.0.34"
