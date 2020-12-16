@@ -9,7 +9,6 @@ mod ui;
 
 use crate::api::*;
 use crate::ui::*;
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 /// Öğrenci yapımız
@@ -43,7 +42,7 @@ fn calculate_new(
     fen: bool,
     sosyal: bool,
     taksit: i64,
-) -> Result<[i64; 4], anyhow::Error> {
+) -> [i64; 4] {
     let mut borc = 0;
     let kalantaksit = taksit;
 
@@ -79,9 +78,7 @@ fn calculate_new(
         kalanborc = borc
     }
 
-    let para = [borc, aylik, kalanborc, kalantaksit];
-
-    Ok(para)
+    [borc, aylik, kalanborc, kalantaksit]
 }
 
 /// Taksit ödemesini yapan öğrencinin taksit bilgisini güncellemeye yarayan fonksiyon

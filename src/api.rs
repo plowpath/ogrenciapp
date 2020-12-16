@@ -61,7 +61,7 @@ pub fn new(
         kalan_taksit: taksit,
     };
 
-    let fixingstuff = calculate_new(yemek, servis, turkce, matematik, fen, sosyal, taksit)?;
+    let fixingstuff = calculate_new(yemek, servis, turkce, matematik, fen, sosyal, taksit);
     let fnborc = fixingstuff[0];
     let fnaylik = fixingstuff[1];
     let fnkalanborc = fixingstuff[2];
