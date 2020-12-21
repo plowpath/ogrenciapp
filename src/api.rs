@@ -1,5 +1,5 @@
 use crate::{
-    calculate_new, calculate_update,
+    calculate_new, calculate_update, calculate_update_lesson,
     database::{self, hesap},
     Ogrenci,
 };
@@ -148,6 +148,8 @@ pub fn update(
             + " WHERE telefon="
             + tel.to_string().as_str();
         conn.execute(hereismysql.as_str(), params![])?;
+        calculate_update_lesson(tel);
+
         let c = json!({"success": true});
         Ok(content::Json(c.to_string()))
     } else if kolum == "kalan_taksit" && yenim.parse::<i64>().is_ok() {
