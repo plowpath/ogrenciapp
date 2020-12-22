@@ -48,27 +48,27 @@ fn calculate_new(
     let kalantaksit = taksit;
 
     match yemek {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match servis {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match turkce {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match matematik {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match fen {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match sosyal {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
 
@@ -89,6 +89,8 @@ fn calculate_update(aylik: i64, kalantaksit: i64) -> i64 {
 
 fn calculate_update_lesson(telefon: i64) -> Result<(i64, i64, i64), anyhow::Error> {
     let mut borc: i64 = 0;
+    let aylik;
+    let kalan_borc;
     let (
         yemek_sonuc,
         servis_sonuc,
@@ -96,37 +98,49 @@ fn calculate_update_lesson(telefon: i64) -> Result<(i64, i64, i64), anyhow::Erro
         matematik_sonuc,
         fen_sonuc,
         sosyal_sonuc,
+        eski_borc,
         taksit_sonuc,
         kalan_taksit_sonuc,
     ) = calculate_on_update(telefon)?;
-
     match yemek_sonuc {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match servis_sonuc {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match turkce_sonuc {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match matematik_sonuc {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match fen_sonuc {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
     match sosyal_sonuc {
-        true => borc += 300,
+        true => borc += 100,
         false => borc += 0,
     }
-
-    let aylik = borc / taksit_sonuc;
-    let kalan_borc = calculate_update(aylik, kalan_taksit_sonuc);
+    if taksit_sonuc == kalan_taksit_sonuc {
+        aylik = borc / taksit_sonuc;
+        kalan_borc = calculate_update(aylik, kalan_taksit_sonuc);
+    } else if eski_borc < borc {
+        let aylik1 = eski_borc / taksit_sonuc;
+        let aylik2 = (borc - eski_borc) / kalan_taksit_sonuc;
+        aylik = aylik1 + aylik2;
+        borc += eski_borc;
+        kalan_borc = calculate_update(aylik, kalan_taksit_sonuc);
+    } else {
+        let aylik1 = eski_borc / taksit_sonuc;
+        let aylik2 = (eski_borc - borc) / kalan_taksit_sonuc;
+        aylik = aylik1 - aylik2;
+        kalan_borc = calculate_update(aylik, kalan_taksit_sonuc);
+    }
 
     Ok((borc, aylik, kalan_borc))
 }

@@ -79,7 +79,7 @@ pub fn hesap(istenilen: &str) -> Result<i64, anyhow::Error> {
     Ok(sonuc)
 }
 
-type Dondur = (bool, bool, bool, bool, bool, bool, i64, i64);
+type Dondur = (bool, bool, bool, bool, bool, bool, i64, i64, i64);
 pub fn calculate_on_update(telefon: i64) -> Result<Dondur, anyhow::Error> {
     let conn = sqlite_connection()?;
     let yemek_sqlsorgu =
@@ -94,6 +94,8 @@ pub fn calculate_on_update(telefon: i64) -> Result<Dondur, anyhow::Error> {
         "SELECT fen FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
     let sosyal_sqlsorgu =
         "SELECT sosyal FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let eski_borc =
+        "SELECT borc FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
     let taksit_sqlsorgu =
         "SELECT taksit FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
     let kalan_taksit_sqlsorgu = "SELECT kalan_taksit FROM Ogrenci WHERE telefon=".to_string()
@@ -121,6 +123,8 @@ pub fn calculate_on_update(telefon: i64) -> Result<Dondur, anyhow::Error> {
         conn.query_row(sosyal_sqlsorgu.as_str(), rusqlite::params![], |row| {
             row.get(0)
         })?;
+    let eski_borc_sonuc: i64 =
+        conn.query_row(eski_borc.as_str(), rusqlite::params![], |row| row.get(0))?;
     let taksit_sonuc: i64 =
         conn.query_row(taksit_sqlsorgu.as_str(), rusqlite::params![], |row| {
             row.get(0)
@@ -137,6 +141,7 @@ pub fn calculate_on_update(telefon: i64) -> Result<Dondur, anyhow::Error> {
         matematik_sonuc,
         fen_sonuc,
         sosyal_sonuc,
+        eski_borc_sonuc,
         taksit_sonuc,
         kalan_taksit_sonuc,
     ))
