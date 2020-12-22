@@ -9,7 +9,7 @@ mod ui;
 
 use crate::api::*;
 use crate::ui::*;
-use database::sqlite_connection;
+use database::calculate_on_update;
 use serde::{Deserialize, Serialize};
 
 /// Öğrenci yapımız
@@ -87,65 +87,18 @@ fn calculate_update(aylik: i64, kalantaksit: i64) -> i64 {
     aylik * kalantaksit
 }
 
-fn calculate_update_lesson(telefon: i64) {
-    let conn = sqlite_connection().unwrap();
-    let yemek_sqlsorgu =
-        "SELECT yemek FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let servis_sqlsorgu =
-        "SELECT servis FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let turkce_sqlsorgu =
-        "SELECT turkce FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let matematik_sqlsorgu =
-        "SELECT matematik FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let fen_sqlsorgu =
-        "SELECT fen FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let sosyal_sqlsorgu =
-        "SELECT sosyal FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let taksit_sqlsorgu =
-        "SELECT taksit FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
-    let kalan_taksit_sqlsorgu = "SELECT kalan_taksit FROM Ogrenci WHERE telefon=".to_string()
-        + telefon.to_string().as_str();
-
-    let yemek_sonuc: bool = conn
-        .query_row(yemek_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-    let servis_sonuc: bool = conn
-        .query_row(servis_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-    let turkce_sonuc: bool = conn
-        .query_row(turkce_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-    let matematik_sonuc: bool = conn
-        .query_row(matematik_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-    let fen_sonuc: bool = conn
-        .query_row(fen_sqlsorgu.as_str(), rusqlite::params![], |row| row.get(0))
-        .unwrap();
-    let sosyal_sonuc: bool = conn
-        .query_row(sosyal_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-    let taksit_sonuc: i64 = conn
-        .query_row(taksit_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-    let kalan_taksit_sonuc: i64 = conn
-        .query_row(kalan_taksit_sqlsorgu.as_str(), rusqlite::params![], |row| {
-            row.get(0)
-        })
-        .unwrap();
-
+fn calculate_update_lesson(telefon: i64) -> Result<(i64, i64, i64), anyhow::Error> {
     let mut borc: i64 = 0;
+    let (
+        yemek_sonuc,
+        servis_sonuc,
+        turkce_sonuc,
+        matematik_sonuc,
+        fen_sonuc,
+        sosyal_sonuc,
+        taksit_sonuc,
+        kalan_taksit_sonuc,
+    ) = calculate_on_update(telefon)?;
 
     match yemek_sonuc {
         true => borc += 300,
@@ -175,28 +128,7 @@ fn calculate_update_lesson(telefon: i64) {
     let aylik = borc / taksit_sonuc;
     let kalan_borc = calculate_update(aylik, kalan_taksit_sonuc);
 
-    let guncelle_bakalim_borc = "UPDATE Ogrenci SET borc=".to_string()
-        + borc.to_string().as_str()
-        + " WHERE telefon="
-        + telefon.to_string().as_str();
-    conn.execute(guncelle_bakalim_borc.as_str(), rusqlite::params![])
-        .unwrap();
-
-    let guncelle_bakalim_aylik = "UPDATE Ogrenci SET aylik=".to_string()
-        + aylik.to_string().as_str()
-        + " WHERE telefon="
-        + telefon.to_string().as_str();
-    conn.execute(guncelle_bakalim_aylik.as_str(), rusqlite::params![])
-        .unwrap();
-
-    let guncelle_bakalim_kalan_borc = "UPDATE Ogrenci SET kalan_borc=".to_string()
-        + kalan_borc.to_string().as_str()
-        + " WHERE telefon="
-        + telefon.to_string().as_str();
-    conn.execute(guncelle_bakalim_kalan_borc.as_str(), rusqlite::params![])
-        .unwrap();
-
-    println!("{}", yemek_sonuc)
+    Ok((borc, aylik, kalan_borc))
 }
 
 /// main fonksiyonumuz sadece rocketi çalıştırmalıdır

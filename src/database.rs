@@ -78,3 +78,66 @@ pub fn hesap(istenilen: &str) -> Result<i64, anyhow::Error> {
 
     Ok(sonuc)
 }
+
+type Dondur = (bool, bool, bool, bool, bool, bool, i64, i64);
+pub fn calculate_on_update(telefon: i64) -> Result<Dondur, anyhow::Error> {
+    let conn = sqlite_connection()?;
+    let yemek_sqlsorgu =
+        "SELECT yemek FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let servis_sqlsorgu =
+        "SELECT servis FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let turkce_sqlsorgu =
+        "SELECT turkce FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let matematik_sqlsorgu =
+        "SELECT matematik FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let fen_sqlsorgu =
+        "SELECT fen FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let sosyal_sqlsorgu =
+        "SELECT sosyal FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let taksit_sqlsorgu =
+        "SELECT taksit FROM Ogrenci WHERE telefon=".to_string() + telefon.to_string().as_str();
+    let kalan_taksit_sqlsorgu = "SELECT kalan_taksit FROM Ogrenci WHERE telefon=".to_string()
+        + telefon.to_string().as_str();
+
+    let yemek_sonuc: bool =
+        conn.query_row(yemek_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+    let servis_sonuc: bool =
+        conn.query_row(servis_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+    let turkce_sonuc: bool =
+        conn.query_row(turkce_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+    let matematik_sonuc: bool =
+        conn.query_row(matematik_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+    let fen_sonuc: bool =
+        conn.query_row(fen_sqlsorgu.as_str(), rusqlite::params![], |row| row.get(0))?;
+    let sosyal_sonuc: bool =
+        conn.query_row(sosyal_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+    let taksit_sonuc: i64 =
+        conn.query_row(taksit_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+    let kalan_taksit_sonuc: i64 =
+        conn.query_row(kalan_taksit_sqlsorgu.as_str(), rusqlite::params![], |row| {
+            row.get(0)
+        })?;
+
+    Ok((
+        yemek_sonuc,
+        servis_sonuc,
+        turkce_sonuc,
+        matematik_sonuc,
+        fen_sonuc,
+        sosyal_sonuc,
+        taksit_sonuc,
+        kalan_taksit_sonuc,
+    ))
+}

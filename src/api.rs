@@ -148,7 +148,24 @@ pub fn update(
             + " WHERE telefon="
             + tel.to_string().as_str();
         conn.execute(hereismysql.as_str(), params![])?;
-        calculate_update_lesson(tel);
+        let (borc, aylik, kalan_borc) = calculate_update_lesson(tel)?;
+        let guncelle_bakalim_borc = "UPDATE Ogrenci SET borc=".to_string()
+            + borc.to_string().as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(guncelle_bakalim_borc.as_str(), rusqlite::params![])?;
+
+        let guncelle_bakalim_aylik = "UPDATE Ogrenci SET aylik=".to_string()
+            + aylik.to_string().as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(guncelle_bakalim_aylik.as_str(), rusqlite::params![])?;
+
+        let guncelle_bakalim_kalan_borc = "UPDATE Ogrenci SET kalan_borc=".to_string()
+            + kalan_borc.to_string().as_str()
+            + " WHERE telefon="
+            + tel.to_string().as_str();
+        conn.execute(guncelle_bakalim_kalan_borc.as_str(), rusqlite::params![])?;
 
         let c = json!({"success": true});
         Ok(content::Json(c.to_string()))
