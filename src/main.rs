@@ -9,6 +9,7 @@ mod ui;
 
 use crate::api::*;
 use crate::ui::*;
+use anyhow::Result;
 use database::calculate_on_update;
 use serde::{Deserialize, Serialize};
 
@@ -87,7 +88,7 @@ fn calculate_update(aylik: i64, kalantaksit: i64) -> i64 {
     aylik * kalantaksit
 }
 
-fn calculate_update_lesson(telefon: i64) -> Result<(i64, i64, i64), anyhow::Error> {
+fn calculate_update_lesson(telefon: i64) -> Result<(i64, i64, i64)> {
     let mut borc: i64 = 0;
     let aylik;
     let kalan_borc;

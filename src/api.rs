@@ -1,17 +1,18 @@
 use crate::{
     calculate_new, calculate_update, calculate_update_lesson,
-    database::{self, hesap},
+    database::{data_hazirlama, hesap, sqlite_connection},
     Ogrenci,
 };
-use rocket::response::content;
+use anyhow::Result;
+use rocket::response::content::Json;
 use rusqlite::params;
 use serde_json::json;
 
 /// tüm databesi döndüren ana api
 #[get("/api")]
-pub fn api() -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection()?;
-    let ogrenciler_iter = database::data_hazirlama(&conn)?;
+pub fn api() -> Result<Json<String>> {
+    let conn = sqlite_connection()?;
+    let ogrenciler_iter = data_hazirlama(&conn)?;
     let mut ogrenciler = String::new();
     ogrenciler += "[";
     for ogrenci in ogrenciler_iter {
@@ -21,7 +22,7 @@ pub fn api() -> Result<rocket::response::content::Json<std::string::String>, any
     if !ogrenciler.is_empty() {
         ogrenciler += "]";
     }
-    Ok(content::Json(ogrenciler))
+    Ok(Json(ogrenciler))
 }
 
 /// öğrenci eklememizi sağlayan apimiz
@@ -40,7 +41,7 @@ pub fn new(
     fen: bool,
     sosyal: bool,
     taksit: i64,
-) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
+) -> Result<Json<String>> {
     let me = Ogrenci {
         id: 0,
         isim,
@@ -67,7 +68,7 @@ pub fn new(
     let fnkalanborc = fixingstuff[2];
     let fnkalantaksit = fixingstuff[3];
 
-    let conn = database::sqlite_connection()?;
+    let conn = sqlite_connection()?;
     let checkphonenumber: Result<i64, rusqlite::Error> = conn.query_row(
         r#"SELECT * FROM Ogrenci WHERE telefon=?"#,
         params![me.telefon],
@@ -96,10 +97,10 @@ pub fn new(
             ],
         )?;
         let b = json!({"success": true});
-        Ok(content::Json(b.to_string()))
+        Ok(Json(b.to_string()))
     } else {
         let b = json!({"success": false});
-        Ok(content::Json(b.to_string()))
+        Ok(Json(b.to_string()))
     }
 }
 
@@ -107,12 +108,8 @@ pub fn new(
 /// öğrenci güncellememizi sağlayan api
 ///
 /// deneme
-pub fn update(
-    tel: i64,
-    kolum: String,
-    yenim: String,
-) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection()?;
+pub fn update(tel: i64, kolum: String, yenim: String) -> Result<Json<String>> {
+    let conn = sqlite_connection()?;
     if kolum == "isim" || kolum == "soyisim" || kolum == "fatura_adres" || kolum == "veli_adres" {
         let hereismysql = "UPDATE Ogrenci SET ".to_string()
             + kolum.as_str()
@@ -122,7 +119,7 @@ pub fn update(
             + tel.to_string().as_str();
         conn.execute(hereismysql.as_str(), params![])?;
         let b = json!({"success": true});
-        Ok(content::Json(b.to_string()))
+        Ok(Json(b.to_string()))
     } else if kolum == "telefon" && yenim.parse::<i64>().is_ok() {
         let hereismysql = "UPDATE Ogrenci SET ".to_string()
             + kolum.as_str()
@@ -132,7 +129,7 @@ pub fn update(
             + tel.to_string().as_str();
         conn.execute(hereismysql.as_str(), params![])?;
         let b = json!({"success": true});
-        Ok(content::Json(b.to_string()))
+        Ok(Json(b.to_string()))
     } else if (kolum == "yemek"
         || kolum == "servis"
         || kolum == "turkce"
@@ -153,22 +150,22 @@ pub fn update(
             + borc.to_string().as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn.execute(guncelle_bakalim_borc.as_str(), rusqlite::params![])?;
+        conn.execute(guncelle_bakalim_borc.as_str(), params![])?;
 
         let guncelle_bakalim_aylik = "UPDATE Ogrenci SET aylik=".to_string()
             + aylik.to_string().as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn.execute(guncelle_bakalim_aylik.as_str(), rusqlite::params![])?;
+        conn.execute(guncelle_bakalim_aylik.as_str(), params![])?;
 
         let guncelle_bakalim_kalan_borc = "UPDATE Ogrenci SET kalan_borc=".to_string()
             + kalan_borc.to_string().as_str()
             + " WHERE telefon="
             + tel.to_string().as_str();
-        conn.execute(guncelle_bakalim_kalan_borc.as_str(), rusqlite::params![])?;
+        conn.execute(guncelle_bakalim_kalan_borc.as_str(), params![])?;
 
         let c = json!({"success": true});
-        Ok(content::Json(c.to_string()))
+        Ok(Json(c.to_string()))
     } else if kolum == "kalan_taksit" && yenim.parse::<i64>().is_ok() {
         let aylik: i64 = conn.query_row(
             "SELECT * FROM Ogrenci WHERE telefon=?",
@@ -189,40 +186,36 @@ pub fn update(
             + tel.to_string().as_str();
         conn.execute(hereismysql2.as_str(), params![])?;
         let b = json!({"success": true});
-        Ok(content::Json(b.to_string()))
+        Ok(Json(b.to_string()))
     } else {
         let b = json!({"success": false});
-        Ok(content::Json(b.to_string()))
+        Ok(Json(b.to_string()))
     }
 }
 
 /// **geliştirme amaçlıdır**
 /// tüm database i silen apimiz
 #[get("/api/nuke")]
-pub fn nuke() -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection()?;
+pub fn nuke() -> Result<Json<String>> {
+    let conn = sqlite_connection()?;
     conn.execute("DELETE FROM Ogrenci", params![])?;
     let b = json!({"success": true});
-    Ok(content::Json(b.to_string()))
+    Ok(Json(b.to_string()))
 }
 
 /// bireysel olarak öğrenci silmemizi sağlar
 #[get("/api/delete?<tel>")]
-pub fn delete(
-    tel: i64,
-) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection()?;
+pub fn delete(tel: i64) -> Result<Json<String>> {
+    let conn = sqlite_connection()?;
     conn.execute("DELETE FROM Ogrenci WHERE telefon=?", params![tel])?;
     let b = json!({"success": true});
-    Ok(content::Json(b.to_string()))
+    Ok(Json(b.to_string()))
 }
 
 /// sadece bir öğrencinin döndürülmesini sağlayan api
 #[get("/api/getstudent?<tel>")]
-pub fn getstudent(
-    tel: i64,
-) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
-    let conn = database::sqlite_connection()?;
+pub fn getstudent(tel: i64) -> Result<Json<String>> {
+    let conn = sqlite_connection()?;
     let mut statement = conn.prepare("SELECT * FROM Ogrenci WHERE telefon=?")?;
     let one_student = statement.query_map(params![tel], |row| {
         Ok(Ogrenci {
@@ -261,14 +254,12 @@ pub fn getstudent(
     } else {
         lel += "]";
     }
-    Ok(content::Json(lel))
+    Ok(Json(lel))
 }
 
 /// basit raporlama apisi
 #[get("/api/data?<istiyorum>")]
-pub fn api_data(
-    istiyorum: String,
-) -> Result<rocket::response::content::Json<std::string::String>, anyhow::Error> {
+pub fn api_data(istiyorum: String) -> Result<Json<String>> {
     let sonuc = hesap(&istiyorum)?;
-    Ok(content::Json(json!({ istiyorum: sonuc }).to_string()))
+    Ok(Json(json!({ istiyorum: sonuc }).to_string()))
 }
