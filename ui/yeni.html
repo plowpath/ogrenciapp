@@ -15,7 +15,7 @@
 <body>
     <div class="container">
         <button onclick="location.href='/tablo'" type="button" class="btn btn-success">Geri</button>
-        <form action="/api/new" method="get">
+        <form target="_blank" action="/api/new" method="get">
             <label for="isim">İsim:</label>
             <input class="form-control" type="text" id="isim" name="isim" required>
             <label for="soyisim">Soyisim:</label>
@@ -53,7 +53,7 @@
                 <label class="form-check-label" for="sosyal">Sosyal</label>
             </div>
 
-            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <button onclick="window.location.href = '/tablo'" type="submit" class="btn btn-primary">Kaydet</button>
             <a class="btn btn-danger" href="/api/nuke" role="button">NUKE (remove later)</a>
         </form>
     </div>

@@ -19,7 +19,7 @@
 
     <div class="container">
         <button onclick="location.href='/tablo'" type="button" class="btn btn-success">Geri</button>
-        <form action="/api/update" method="get">
+        <form target="_blank" action="/api/update" method="get">
             <label for="isim">Değiştirilecek öğrencinin telefonu:</label>
             <input class="form-control" type="text" id="tel" name="tel" required>
             <label for="soyisim">Yeni değer:</label>
@@ -30,22 +30,34 @@
                     Seç
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><input type="submit" class="form-control btn btn-outline-success" name="kolum" value="isim">
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn btn-outline-success" name="kolum" value="isim">
                     </li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="soyisim"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="fatura_adres">
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="soyisim"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="fatura_adres">
                     </li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="veli_adres">
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="veli_adres">
                     </li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="telefon"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="yemek"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="servis"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="turkce"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="matematik">
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="telefon"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="yemek"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="servis"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="turkce"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="matematik">
                     </li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="fen"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="sosyal"></li>
-                    <li><input type="submit" class="form-control btn-outline-success" name="kolum" value="kalan_taksit">
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="fen"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="sosyal"></li>
+                    <li><input onclick="window.location.href = '/tablo'" type="submit"
+                            class="form-control btn-outline-success" name="kolum" value="kalan_taksit">
                     </li>
                 </div>
             </div>
