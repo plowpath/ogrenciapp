@@ -7,8 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde_json = { version = "1.0.59", features = ["preserve_order"] }
+serde_json = { version = "1.0.61", features = ["preserve_order"] }
 rocket = "0.4.6"
-serde = { version = "1.0.117", features = ["derive"] }
+serde = { version = "1.0.118", features = ["derive"] }
 rusqlite = { version = "0.24.2", features = ["bundled"] }
-anyhow = "1.0.34"
+anyhow = "1.0.37"
