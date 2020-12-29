@@ -115,13 +115,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.js"></script>
     <script type="text/javascript">
-        var myjson;
         $.getJSON("/api", function (json) {
-            myjson = json;
-            console.log(myjson);
             $(document).ready(function () {
                 $('table').bootstrapTable({
-                    data: myjson,
+                    data: json,
                     search: true
                 });
             });
